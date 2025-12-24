@@ -1,0 +1,39 @@
+graph TD
+    subgraph "OS Layer"
+        OS["Operating System (Win/Mac/Linux)"]
+        FS["File System (JSON Store)"]
+    end
+
+    subgraph "Electron Application"
+        subgraph "Main Process"
+            Main["Main Entry (main.ts)"]
+            WinMan["Window Manager"]
+            IPC_M["IPC Main Handler"]
+            Store["Settings Store"]
+        end
+
+        subgraph "Renderer Process"
+            React["React App Root"]
+            Input["Input Controller (Mouse Tracking)"]
+            UI_Ring["Ring Component"]
+            UI_Menu["Control Menu Component"]
+            IPC_R["IPC Renderer Invoker"]
+        end
+    end
+
+    Main --> WinMan
+    WinMan -->|"Creates Transparent Window"| React
+    
+    React --> UI_Ring
+    React --> UI_Menu
+    React --> Input
+
+    Input -->|"Detects Hover Zone"| IPC_R
+    IPC_R -->|"toggle-click-through"| IPC_M
+    IPC_M -->|"setIgnoreMouseEvents"| WinMan
+    WinMan -->|"Forward Events / Trap Events"| OS
+
+    UI_Menu -->|"Update Settings"| IPC_R
+    IPC_R -->|"save-settings"| IPC_M
+    IPC_M --> Store
+    Store --> FS
