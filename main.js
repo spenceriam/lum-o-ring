@@ -138,6 +138,10 @@ app.whenReady().then(async () => {
 
   console.log("[lum-o-ring] Window created");
 
+  // Make window click-through by default (passes all clicks to apps below)
+  mainWindow.setIgnoreMouseEvents(true, { forward: true });
+  console.log("[lum-o-ring] Click-through enabled");
+
   // Handle window close - actually quit
   mainWindow.on("close", (event) => {
     if (!isQuitting) {
@@ -164,6 +168,14 @@ ipcMain.on("quitApp", () => {
   console.log("[lum-o-ring] Quit app requested");
   isQuitting = true;
   app.quit();
+});
+
+// Toggle click-through based on mouse position
+ipcMain.on("setIgnoreMouse", (event, ignore) => {
+  if (mainWindow) {
+    mainWindow.setIgnoreMouseEvents(ignore, { forward: ignore });
+    console.log("[lum-o-ring] Mouse events", ignore ? "ignored (click-through)" : "enabled (UI accessible)");
+  }
 });
 
 // App lifecycle - don't prevent quit on Linux

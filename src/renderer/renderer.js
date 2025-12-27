@@ -195,6 +195,23 @@ function setupEventListeners() {
     });
   }
 
+  // Mouse tracking for click-through
+  // Enable mouse events when hovering over UI, disable (click-through) otherwise
+  document.addEventListener('mousemove', function(e) {
+    const target = e.target;
+    const isClickable = target.closest('#toggle-settings') ||
+                        target.closest('#control-panel') ||
+                        target.closest('#power-toggle') ||
+                        target.closest('input[type="range"]') ||
+                        target.closest('.color-preset') ||
+                        target.closest('#quit-btn') ||
+                        target.closest('.toggle-slider');
+
+    // false = enable mouse events (for UI interaction)
+    // true = ignore mouse events (click-through to apps below)
+    ipcRenderer.send('setIgnoreMouse', !isClickable);
+  });
+
   console.log('[lum-o-ring] Event listeners setup complete');
 }
 
