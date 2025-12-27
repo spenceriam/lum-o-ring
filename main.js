@@ -1,7 +1,7 @@
 // Lum-o-ring Main Process
 // Screen-based ring light overlay
 
-const { app, BrowserWindow, ipcMain, Tray, Menu } = require("electron");
+const { app, BrowserWindow, ipcMain } = require("electron");
 const path = require("path");
 
 // Safe logging wrapper to handle EPIPE errors
@@ -53,11 +53,10 @@ if (process.env.WAYLAND_DISPLAY && !process.env.GDK_BACKEND) {
 // Settings store
 let settingsStore = {
   isOn: true,
-  radius: 45,
-  thickness: 20,
-  brightness: 100,
-  blur: 30,
-  color: "#fff5cc"
+  size: 45,        // Size percentage of screen
+  thickness: 20,   // Ring thickness in pixels
+  brightness: 100, // 0-100
+  color: "#fff5cc" // Warm white
 };
 
 const SETTINGS_FILE = path.join(app.getPath("userData"), "lum-o-ring.json");
@@ -103,6 +102,7 @@ if (!gotTheLock) {
 }
 
 let mainWindow = null;
+let isQuitting = false;
 
 app.whenReady().then(async () => {
   console.log("[lum-o-ring] App ready");
@@ -138,10 +138,12 @@ app.whenReady().then(async () => {
 
   console.log("[lum-o-ring] Window created");
 
-  // Handle window close - minimize to tray instead
+  // Handle window close - actually quit
   mainWindow.on("close", (event) => {
-    event.preventDefault();
-    mainWindow.hide();
+    if (!isQuitting) {
+      isQuitting = true;
+      app.quit();
+    }
   });
 
   mainWindow.loadFile("src/renderer/index.html");
@@ -159,20 +161,27 @@ ipcMain.handle("saveSettings", async (event, data) => {
 });
 
 ipcMain.on("quitApp", () => {
+  console.log("[lum-o-ring] Quit app requested");
+  isQuitting = true;
   app.quit();
 });
 
-// App lifecycle
-app.on("window-all-closed", (event) => {
-  event.preventDefault();
+// App lifecycle - don't prevent quit on Linux
+app.on("window-all-closed", () => {
+  // On Linux, quit when all windows are closed
+  app.quit();
 });
 
 app.on("before-quit", () => {
-  // Cleanup if needed
+  isQuitting = true;
 });
 
 app.on("activate", () => {
-  if (mainWindow) {
-    mainWindow.show();
+  // On macOS, recreate window if needed
+  if (mainWindow === null) {
+    app.whenReady().then(async () => {
+      await loadSettings();
+      // Recreate window logic here if needed
+    });
   }
 });

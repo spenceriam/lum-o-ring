@@ -1,0 +1,44 @@
+{
+  "name": "lum-o-ring",
+  "version": "1.0.0",
+  "description": "Screen-based ring light overlay for video calls",
+  "main": "main.js",
+  "scripts": {
+    "start": "GDK_BACKEND=x11 electron . 2>&1 | grep -v 'GetVSyncParametersIfAvailable'",
+    "dev": "GDK_BACKEND=x11 electron . --enable-logging 2>&1 | grep -v 'GetVSyncParametersIfAvailable'",
+    "dev:verbose": "GDK_BACKEND=x11 electron . --enable-logging",
+    "build": "electron-builder --linux",
+    "build:appimage": "electron-builder --linux AppImage"
+  },
+  "keywords": [
+    "ring-light",
+    "overlay",
+    "video-calls",
+    "lighting",
+    "electron",
+    "linux"
+  ],
+  "author": "lum-o-ring",
+  "license": "MIT",
+  "dependencies": {},
+  "devDependencies": {
+    "electron": "^28.0.0",
+    "electron-builder": "^24.9.1"
+  },
+  "build": {
+    "appId": "com.lum-o-ring.app",
+    "productName": "Lum-o-ring",
+    "linux": {
+      "target": ["AppImage"],
+      "category": "Utility",
+      "executableName": "lum-o-ring"
+    },
+    "files": [
+      "main.js",
+      "src/**/*"
+    ],
+    "directories": {
+      "output": "dist"
+    }
+  }
+}
