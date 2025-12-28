@@ -80,7 +80,8 @@ body {
 
 /* Invisible hit area around gear icon to trigger mousemove events
    This fixes the issue where setIgnoreMouseEvents(true, { forward: true })
-   doesn't deliver mousemove events over transparent pixels */
+   doesn't deliver mousemove events over transparent pixels.
+   Using rgba(0,0,0,0.1) because lower alpha values may be treated as transparent by XWayland */
 .settings-toggle::before {
     content: '';
     position: absolute;
@@ -88,7 +89,7 @@ body {
     right: -20px;
     bottom: -20px;
     left: -20px;
-    background: rgba(0, 0, 0, 0.01); /* Nearly invisible but NOT transparent */
+    background: rgba(0, 0, 0, 0.1); /* 10% opacity - visible for testing */
     pointer-events: auto;
     z-index: -1;
 }
