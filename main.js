@@ -138,12 +138,20 @@ app.whenReady().then(async () => {
     },
   });
 
-  // Ring window is always click-through
+  // Ring window is always click-through (but we'll toggle for gear icon)
   ringWindow.setIgnoreMouseEvents(true, { forward: true });
   console.log("[lum-o-ring] Ring window created (click-through enabled)");
 
-  // Handle ring window close
-  ringWindow.on("close", (event) => {
+  // Handle ring window close - quit app
+  ringWindow.on("close", () => {
+    if (!isQuitting) {
+      isQuitting = true;
+    }
+  });
+
+  // When ring window is closed, quit the app
+  ringWindow.on("closed", () => {
+    ringWindow = null;
     if (!isQuitting) {
       isQuitting = true;
       app.quit();
@@ -220,6 +228,22 @@ ipcMain.on("open-settings", () => {
     settingsWindow.show();
     settingsWindow.focus();
     console.log("[lum-o-ring] Settings window opened via right-click");
+  }
+});
+
+// Toggle mouse events for gear icon (enables right-click)
+ipcMain.on("enable-mouse-events", () => {
+  if (ringWindow && !ringWindow.isDestroyed()) {
+    ringWindow.setIgnoreMouseEvents(false);
+    console.log("[lum-o-ring] Mouse events enabled for gear icon");
+  }
+});
+
+// Re-enable click-through when leaving gear icon
+ipcMain.on("disable-mouse-events", () => {
+  if (ringWindow && !ringWindow.isDestroyed()) {
+    ringWindow.setIgnoreMouseEvents(true, { forward: true });
+    console.log("[lum-o-ring] Mouse events disabled (click-through restored)");
   }
 });
 
