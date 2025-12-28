@@ -2,6 +2,8 @@
 
 ![Version](https://img.shields.io/badge/version-1.0.0-blue) ![License](https://img.shields.io/badge/license-MIT-green) ![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey)
 
+![Demo](releases/Screencap.gif)
+
 ## Description
 
 Lum-o-ring is a cross-platform desktop application designed to function as a screen-based ring light overlay for video calls. It renders a scalable, illuminated ring shape on the screen to improve user lighting conditions without requiring external hardware. The application ensures the center of the screen remains unobstructed for work, while the illuminated ring section is interactive and opaque to prevent accidental clicks on underlying windows.
