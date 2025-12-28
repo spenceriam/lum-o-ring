@@ -1,6 +1,6 @@
 # Lum-o-ring
 
-![Version](https://img.shields.io/badge/version-1.0.0-blue) ![License](https://img.shields.io/badge/license-MIT-green) ![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey)
+![Version](https://img.shields.io/badge/version-1.0.0-blue) ![License](https://img.shields.io/badge/license-Apache%202.0-green) ![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey) ![LLM](https://img.shields.io/badge/LLM-Minimax%20M2.1-orange) ![Harness](https://img.shields.io/badge/Harness-Claude%20Code-purple)
 
 ![Demo](releases/Screencap.gif)
 
