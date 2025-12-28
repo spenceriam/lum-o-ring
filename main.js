@@ -184,13 +184,19 @@ app.whenReady().then(async () => {
 function createSettingsWindow() {
   const { screen } = require("electron");
   const primaryDisplay = screen.getPrimaryDisplay();
-  const { x, y } = primaryDisplay.bounds;
+  const { x, y, width: screenWidth, height: screenHeight } = primaryDisplay.bounds;
+  const WINDOW_WIDTH = 320;
+  const WINDOW_HEIGHT = 720;
+
+  // Center the window on screen
+  const centerX = x + (screenWidth - WINDOW_WIDTH) / 2;
+  const centerY = y + (screenHeight - WINDOW_HEIGHT) / 2;
 
   settingsWindow = new BrowserWindow({
-    width: 320,
-    height: 720,
-    x: x + 50,
-    y: y + 50,
+    width: WINDOW_WIDTH,
+    height: WINDOW_HEIGHT,
+    x: Math.round(centerX),
+    y: Math.round(centerY),
     frame: false,
     transparent: true,
     resizable: false,
