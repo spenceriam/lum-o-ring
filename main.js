@@ -1,7 +1,7 @@
 // Lum-o-ring Main Process
-// Screen-based ring light overlay
+// Two-window approach: Ring overlay + Settings dialog
 
-const { app, BrowserWindow, ipcMain } = require("electron");
+const { app, BrowserWindow, ipcMain, globalShortcut } = require("electron");
 const path = require("path");
 
 // Safe logging wrapper to handle EPIPE errors
@@ -102,7 +102,8 @@ if (!gotTheLock) {
   app.quit();
 }
 
-let mainWindow = null;
+let ringWindow = null;
+let settingsWindow = null;
 let isQuitting = false;
 
 app.whenReady().then(async () => {
@@ -118,8 +119,8 @@ app.whenReady().then(async () => {
 
   console.log(`[lum-o-ring] Display size: ${width}x${height}`);
 
-  // Create transparent window
-  mainWindow = new BrowserWindow({
+  // ========== Create Ring Window (fullscreen, transparent, click-through) ==========
+  ringWindow = new BrowserWindow({
     width: width,
     height: height,
     x: 0,
@@ -137,26 +138,80 @@ app.whenReady().then(async () => {
     },
   });
 
-  console.log("[lum-o-ring] Window created");
+  // Ring window is always click-through
+  ringWindow.setIgnoreMouseEvents(true, { forward: true });
+  console.log("[lum-o-ring] Ring window created (click-through enabled)");
 
-  // Enable click-through by default (before loadFile)
-  // This forwards mouse position to OS while ignoring clicks
-  // UI elements re-enable mouse events via dynamic set-ignore-mouse IPC
-  mainWindow.setIgnoreMouseEvents(true, { forward: true });
-  console.log("[lum-o-ring] Click-through enabled");
-
-  // Handle window close - actually quit
-  mainWindow.on("close", (event) => {
+  // Handle ring window close
+  ringWindow.on("close", (event) => {
     if (!isQuitting) {
       isQuitting = true;
       app.quit();
     }
   });
 
-  mainWindow.loadFile("src/renderer/index.html");
+  ringWindow.loadFile("src/renderer/index.html");
 
-  console.log("[lum-o-ring] Window loaded");
+  // ========== Create Settings Window (normal, hidden by default) ==========
+  createSettingsWindow();
+
+  // ========== Register Keyboard Shortcuts ==========
+  // Ctrl+Shift+L to toggle settings window
+  globalShortcut.register('CommandOrControl+Shift+L', () => {
+    toggleSettingsWindow();
+  });
+  console.log("[lum-o-ring] Keyboard shortcut registered: Ctrl+Shift+L for settings");
+
+  console.log("[lum-o-ring] Ring window loaded");
 });
+
+function createSettingsWindow() {
+  const { screen } = require("electron");
+  const primaryDisplay = screen.getPrimaryDisplay();
+  const { x, y } = primaryDisplay.bounds;
+
+  settingsWindow = new BrowserWindow({
+    width: 320,
+    height: 450,
+    x: x + 50,
+    y: y + 50,
+    frame: false,
+    transparent: true,
+    resizable: false,
+    skipTaskbar: true,
+    alwaysOnTop: true,
+    show: false,
+    webPreferences: {
+      nodeIntegration: false,
+      contextIsolation: true,
+      preload: path.join(__dirname, "src/renderer/preload.js"),
+    },
+  });
+
+  console.log("[lum-o-ring] Settings window created");
+
+  settingsWindow.loadFile("src/renderer/settings.html");
+
+  settingsWindow.on("close", (event) => {
+    // Just hide instead of closing
+    event.preventDefault();
+    settingsWindow.hide();
+    console.log("[lum-o-ring] Settings window hidden");
+  });
+}
+
+function toggleSettingsWindow() {
+  if (settingsWindow) {
+    if (settingsWindow.isVisible()) {
+      settingsWindow.hide();
+      console.log("[lum-o-ring] Settings window hidden");
+    } else {
+      settingsWindow.show();
+      settingsWindow.focus();
+      console.log("[lum-o-ring] Settings window shown");
+    }
+  }
+}
 
 // IPC handlers
 ipcMain.handle("loadSettings", async () => {
@@ -173,16 +228,17 @@ ipcMain.on("quitApp", () => {
   app.quit();
 });
 
-// Dynamic click-through handler
-ipcMain.on("set-ignore-mouse", (event, ignore) => {
-  if (mainWindow) {
-    if (ignore) {
-      mainWindow.setIgnoreMouseEvents(true, { forward: true });
-      console.log("[lum-o-ring] Mouse events ignored (click-through enabled)");
-    } else {
-      mainWindow.setIgnoreMouseEvents(false);
-      console.log("[lum-o-ring] Mouse events enabled (UI accessible)");
-    }
+ipcMain.on("close-settings", () => {
+  if (settingsWindow) {
+    settingsWindow.hide();
+    console.log("[lum-o-ring] Settings window closed");
+  }
+});
+
+ipcMain.on("update-ring", (event, settings) => {
+  // Broadcast settings to ring window
+  if (ringWindow) {
+    ringWindow.webContents.send("ring-settings-updated", settings);
   }
 });
 
@@ -194,14 +250,14 @@ app.on("window-all-closed", () => {
 
 app.on("before-quit", () => {
   isQuitting = true;
+  globalShortcut.unregisterAll();
 });
 
 app.on("activate", () => {
   // On macOS, recreate window if needed
-  if (mainWindow === null) {
+  if (ringWindow === null) {
     app.whenReady().then(async () => {
       await loadSettings();
-      // Recreate window logic here if needed
     });
   }
 });

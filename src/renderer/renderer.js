@@ -1,29 +1,21 @@
-// Lum-o-ring Renderer
-// Ring light overlay with transparent background
+// Lum-o-ring Ring Renderer
+// Ring overlay only - receives settings from settings window
 
 const electronAPI = window.electronAPI;
 
 // Ring settings state
 let settings = {
   isOn: true,
-  size: 80,        // Size percentage of screen
-  thickness: 25,   // Pixels (thickness of the ring band)
-  brightness: 100, // 0-100
-  blur: 40,        // Pixels (glow/blur amount)
-  color: '#fff5cc' // Warm white
+  size: 80,
+  thickness: 25,
+  brightness: 100,
+  blur: 40,
+  color: '#fff5cc'
 };
-
-// Control panel visibility
-let showControlPanel = false;
 
 // Initialize the app
 async function init() {
-  console.log('[lum-o-ring] Initializing renderer...');
-  console.log('[lum-o-ring] electronAPI available:', !!window.electronAPI);
-
-  if (!window.electronAPI) {
-    console.error('[lum-o-ring] FATAL: electronAPI not exposed via preload');
-  }
+  console.log('[lum-o-ring] Initializing ring renderer...');
 
   // Load saved settings
   try {
@@ -33,241 +25,31 @@ async function init() {
       console.log('[lum-o-ring] Settings loaded:', settings);
     }
   } catch (error) {
-    console.log('[lum-o-ring] Using default settings (IPC not ready yet)');
+    console.log('[lum-o-ring] Using default settings');
   }
 
-  // Apply settings to UI controls
-  syncUIWithSettings();
-
-  // Setup event listeners
-  setupEventListeners();
-
-  // Setup click-through handler
-  setupClickThrough();
-
-  // DIAGNOSTIC: Test mousemove events over different areas
-  // Remove this after confirming the fix works
-  document.addEventListener('mousemove', (e) => {
-    console.log(`[mousemove] x=${e.clientX}, y=${e.clientY}`);
+  // Listen for settings updates from settings window
+  electronAPI.on('ring-settings-updated', (newSettings) => {
+    settings = { ...settings, ...newSettings };
+    console.log('[lum-o-ring] Settings updated:', settings);
+    updateRing();
+    updateRingSize();
   });
 
   // Apply settings and update ring
   updateRing();
   updateRingSize();
 
-  console.log('[lum-o-ring] Renderer initialized');
-}
-
-// Sync UI controls with settings values
-function syncUIWithSettings() {
-  const powerToggle = document.getElementById('power-toggle');
-  const sizeSlider = document.getElementById('size-slider');
-  const sizeValue = document.getElementById('size-value');
-  const thicknessSlider = document.getElementById('thickness-slider');
-  const thicknessValue = document.getElementById('thickness-value');
-  const brightnessSlider = document.getElementById('brightness-slider');
-  const brightnessValue = document.getElementById('brightness-value');
-  const blurSlider = document.getElementById('blur-slider');
-  const blurValue = document.getElementById('blur-value');
-  const colorPicker = document.getElementById('color-picker');
-
-  if (powerToggle) powerToggle.checked = settings.isOn;
-  if (sizeSlider) sizeSlider.value = settings.size;
-  if (sizeValue) sizeValue.textContent = settings.size + '%';
-  if (thicknessSlider) thicknessSlider.value = settings.thickness;
-  if (thicknessValue) thicknessValue.textContent = settings.thickness + 'px';
-  if (brightnessSlider) brightnessSlider.value = settings.brightness;
-  if (brightnessValue) brightnessValue.textContent = settings.brightness + '%';
-  if (blurSlider) blurSlider.value = settings.blur;
-  if (blurValue) blurValue.textContent = settings.blur + 'px';
-  if (colorPicker) colorPicker.value = settings.color;
-}
-
-// Setup all event listeners
-function setupEventListeners() {
-  console.log('[lum-o-ring] Setting up event listeners...');
-
-  const toggleBtn = document.getElementById('toggle-settings');
-  const controlPanel = document.getElementById('control-panel');
-
-  // Toggle control panel
-  if (toggleBtn) {
-    toggleBtn.addEventListener('click', function(e) {
-      console.log('[lum-o-ring] Toggle button clicked');
-      e.stopPropagation();
-      showControlPanel = !showControlPanel;
-      if (controlPanel) {
-        controlPanel.classList.toggle('hidden', !showControlPanel);
-      }
-      toggleBtn.classList.toggle('active', showControlPanel);
-      console.log('[lum-o-ring] Panel visible:', showControlPanel);
-    });
-    console.log('[lum-o-ring] Toggle button listener attached');
-  } else {
-    console.error('[lum-o-ring] Toggle button not found!');
-  }
-
-  // Close control panel button
-  const closeBtn = document.getElementById('close-settings');
-  if (closeBtn) {
-    closeBtn.addEventListener('click', function(e) {
-      console.log('[lum-o-ring] Close button clicked');
-      e.stopPropagation();
-      showControlPanel = false;
-      controlPanel?.classList.add('hidden');
-      toggleBtn?.classList.remove('active');
-    });
-  }
-
-  // Close when clicking outside
-  document.addEventListener('click', function(e) {
-    const isControlPanel = e.target.closest('#control-panel');
-    const isToggleBtn = e.target.closest('#toggle-settings');
-
-    if (showControlPanel && !isControlPanel && !isToggleBtn) {
-      showControlPanel = false;
-      controlPanel?.classList.add('hidden');
-      toggleBtn?.classList.remove('active');
-    }
-  });
-
-  // Power toggle
-  const powerToggle = document.getElementById('power-toggle');
-  if (powerToggle) {
-    powerToggle.addEventListener('change', function(e) {
-      console.log('[lum-o-ring] Power toggled:', e.target.checked);
-      settings.isOn = e.target.checked;
-      updateRing();
-      saveSettings();
-    });
-  }
-
-  // Size slider
-  const sizeSlider = document.getElementById('size-slider');
-  if (sizeSlider) {
-    sizeSlider.addEventListener('input', function(e) {
-      settings.size = parseInt(e.target.value);
-      const sizeValue = document.getElementById('size-value');
-      if (sizeValue) sizeValue.textContent = settings.size + '%';
-      console.log('[lum-o-ring] Size:', settings.size);
-      updateRingSize();
-      saveSettingsDebounced();
-    });
-  }
-
-  // Thickness slider
-  const thicknessSlider = document.getElementById('thickness-slider');
-  if (thicknessSlider) {
-    thicknessSlider.addEventListener('input', function(e) {
-      settings.thickness = parseInt(e.target.value);
-      const thicknessValue = document.getElementById('thickness-value');
-      if (thicknessValue) thicknessValue.textContent = settings.thickness + 'px';
-      console.log('[lum-o-ring] Thickness:', settings.thickness);
-      updateRing();
-      saveSettingsDebounced();
-    });
-  }
-
-  // Brightness slider
-  const brightnessSlider = document.getElementById('brightness-slider');
-  if (brightnessSlider) {
-    brightnessSlider.addEventListener('input', function(e) {
-      settings.brightness = parseInt(e.target.value);
-      const brightnessValue = document.getElementById('brightness-value');
-      if (brightnessValue) brightnessValue.textContent = settings.brightness + '%';
-      console.log('[lum-o-ring] Brightness:', settings.brightness);
-      updateRing();
-      saveSettingsDebounced();
-    });
-  }
-
-  // Blur slider
-  const blurSlider = document.getElementById('blur-slider');
-  if (blurSlider) {
-    blurSlider.addEventListener('input', function(e) {
-      settings.blur = parseInt(e.target.value);
-      const blurValue = document.getElementById('blur-value');
-      if (blurValue) blurValue.textContent = settings.blur + 'px';
-      console.log('[lum-o-ring] Blur:', settings.blur);
-      updateRing();
-      saveSettingsDebounced();
-    });
-  }
-
-  // Color picker
-  const colorPicker = document.getElementById('color-picker');
-  if (colorPicker) {
-    colorPicker.addEventListener('input', function(e) {
-      settings.color = e.target.value;
-      console.log('[lum-o-ring] Color:', settings.color);
-      updateRing();
-      saveSettingsDebounced();
-    });
-  }
-
-  // Preset colors
-  document.querySelectorAll('.color-preset').forEach(function(btn) {
-    btn.addEventListener('click', function(e) {
-      e.stopPropagation();
-      settings.color = btn.dataset.color;
-      if (colorPicker) colorPicker.value = settings.color;
-      console.log('[lum-o-ring] Preset color:', settings.color);
-      updateRing();
-      saveSettingsDebounced();
-    });
-  });
-
-  // Quit button
-  const quitBtn = document.getElementById('quit-btn');
-  if (quitBtn) {
-    quitBtn.addEventListener('click', function(e) {
-      e.stopPropagation();
-      console.log('[lum-o-ring] Quit clicked');
-      electronAPI.send('quitApp');
-    });
-  }
-
-  console.log('[lum-o-ring] Event listeners setup complete');
-}
-
-// Setup dynamic click-through based on mouse position
-function setupClickThrough() {
-  let isIgnoring = true;
-
-  document.addEventListener('mousemove', (e) => {
-    const element = document.elementFromPoint(e.clientX, e.clientY);
-    const isOverUI = element && (
-      element.closest('#control-panel') ||
-      element.closest('#toggle-settings')
-    );
-
-    const shouldIgnore = !isOverUI;
-
-    if (shouldIgnore !== isIgnoring) {
-      isIgnoring = shouldIgnore;
-      window.electronAPI.send('set-ignore-mouse', shouldIgnore);
-      console.log('[lum-o-ring] Click-through:', isIgnoring ? 'enabled' : 'disabled');
-    }
-  });
-
-  // Start with click-through enabled
-  window.electronAPI.send('set-ignore-mouse', true);
-  console.log('[lum-o-ring] Click-through handler initialized');
+  console.log('[lum-o-ring] Ring renderer initialized');
 }
 
 // Update ring visual
 function updateRing() {
   const ring = document.getElementById('ring');
-  const powerToggle = document.getElementById('power-toggle');
 
   if (!ring) {
     console.error('[lum-o-ring] Ring element not found!');
     return;
-  }
-
-  // Update power toggle state
-  if (powerToggle) {
-    powerToggle.checked = settings.isOn;
   }
 
   if (!settings.isOn) {
@@ -298,23 +80,6 @@ function updateRingSize() {
 window.addEventListener('resize', function() {
   updateRingSize();
 });
-
-// Debounced save
-var saveTimeout = null;
-function saveSettingsDebounced() {
-  if (saveTimeout) clearTimeout(saveTimeout);
-  saveTimeout = setTimeout(saveSettings, 500);
-}
-
-// Save settings
-async function saveSettings() {
-  try {
-    await electronAPI.invoke('saveSettings', { settings: settings });
-    console.log('[lum-o-ring] Settings saved:', settings);
-  } catch (error) {
-    console.error('[lum-o-ring] Failed to save settings:', error);
-  }
-}
 
 // Start when DOM is ready
 if (document.readyState === 'loading') {

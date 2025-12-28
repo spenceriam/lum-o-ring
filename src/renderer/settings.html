@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'" />
+    <title>Lum-o-ring Settings</title>
+    <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+    <!-- Settings Window -->
+    <div class="settings-window">
+        <div class="settings-header">
+            <span>Lum-o-ring Settings</span>
+            <button id="close-settings" class="close-btn">&times;</button>
+        </div>
+
+        <div class="settings-content">
+            <div class="settings-section">
+                <label class="toggle-label">
+                    <span>Power</span>
+                    <input type="checkbox" id="power-toggle" checked>
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+
+            <div class="settings-section">
+                <label>Size: <span id="size-value">80%</span></label>
+                <input type="range" id="size-slider" min="20" max="95" value="80">
+            </div>
+
+            <div class="settings-section">
+                <label>Thickness: <span id="thickness-value">25px</span></label>
+                <input type="range" id="thickness-slider" min="5" max="80" value="25">
+            </div>
+
+            <div class="settings-section">
+                <label>Brightness: <span id="brightness-value">100%</span></label>
+                <input type="range" id="brightness-slider" min="10" max="100" value="100">
+            </div>
+
+            <div class="settings-section">
+                <label>Glow: <span id="blur-value">40px</span></label>
+                <input type="range" id="blur-slider" min="0" max="100" value="40">
+            </div>
+
+            <div class="settings-section">
+                <label>Color</label>
+                <div class="color-picker-row">
+                    <input type="color" id="color-picker" value="#fff5cc">
+                    <div class="color-presets">
+                        <button class="color-preset" data-color="#ffffff" style="background: #ffffff" title="White"></button>
+                        <button class="color-preset" data-color="#fff5cc" style="background: #fff5cc" title="Warm"></button>
+                        <button class="color-preset" data-color="#ccf0ff" style="background: #ccf0ff" title="Cool"></button>
+                        <button class="color-preset" data-color="#ffccff" style="background: #ffccff" title="Pink"></button>
+                        <button class="color-preset" data-color="#ccffcc" style="background: #ccffcc" title="Green"></button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="settings-section">
+                <div class="shortcut-info">
+                    <kbd>Ctrl+Shift+L</kbd> Toggle click-through
+                </div>
+            </div>
+
+            <div class="settings-actions">
+                <button id="quit-btn" class="action-btn quit">Quit Lum-o-ring</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="settings.js"></script>
+</body>
+</html>

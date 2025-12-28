@@ -8,73 +8,8 @@
     <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-    <!-- Fullscreen Transparent Window -->
-    <div class="overlay-container">
-        <!-- Ring Light Overlay -->
-        <div id="ring" class="ring-light"></div>
-
-        <!-- Settings Toggle Button -->
-        <button id="toggle-settings" class="settings-toggle" title="Settings">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="12" r="3"></circle>
-                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
-            </svg>
-        </button>
-
-        <!-- Control Panel -->
-        <div id="control-panel" class="control-panel hidden">
-            <div class="panel-header">
-                <span>Lum-o-ring</span>
-                <button id="close-settings" class="close-btn">&times;</button>
-            </div>
-
-            <div class="panel-section">
-                <label class="toggle-label">
-                    <span>Power</span>
-                    <input type="checkbox" id="power-toggle" checked>
-                    <span class="toggle-slider"></span>
-                </label>
-            </div>
-
-            <div class="panel-section">
-                <label>Size: <span id="size-value">80%</span></label>
-                <input type="range" id="size-slider" min="20" max="95" value="80">
-            </div>
-
-            <div class="panel-section">
-                <label>Thickness: <span id="thickness-value">25px</span></label>
-                <input type="range" id="thickness-slider" min="5" max="80" value="25">
-            </div>
-
-            <div class="panel-section">
-                <label>Brightness: <span id="brightness-value">100%</span></label>
-                <input type="range" id="brightness-slider" min="10" max="100" value="100">
-            </div>
-
-            <div class="panel-section">
-                <label>Glow: <span id="blur-value">40px</span></label>
-                <input type="range" id="blur-slider" min="0" max="100" value="40">
-            </div>
-
-            <div class="panel-section">
-                <label>Color</label>
-                <div class="color-picker-row">
-                    <input type="color" id="color-picker" value="#fff5cc">
-                    <div class="color-presets">
-                        <button class="color-preset" data-color="#ffffff" style="background: #ffffff" title="White"></button>
-                        <button class="color-preset" data-color="#fff5cc" style="background: #fff5cc" title="Warm"></button>
-                        <button class="color-preset" data-color="#ccf0ff" style="background: #ccf0ff" title="Cool"></button>
-                        <button class="color-preset" data-color="#ffccff" style="background: #ffccff" title="Pink"></button>
-                        <button class="color-preset" data-color="#ccffcc" style="background: #ccffcc" title="Green"></button>
-                    </div>
-                </div>
-            </div>
-
-            <div class="panel-actions">
-                <button id="quit-btn" class="action-btn quit">Quit</button>
-            </div>
-        </div>
-    </div>
+    <!-- Ring Light Overlay -->
+    <div id="ring" class="ring-light"></div>
 
     <script src="renderer.js"></script>
 </body>
