@@ -134,7 +134,7 @@ body {
     align-items: center;
     justify-content: space-between;
     cursor: pointer;
-    gap: 12px;
+    gap: 16px;
 }
 
 @keyframes slideIn {
