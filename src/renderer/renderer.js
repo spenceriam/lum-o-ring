@@ -257,15 +257,17 @@ function updateRing() {
   ring.style.filter = 'drop-shadow(0 0 ' + glowAmount + 'px ' + settings.color + ')';
 }
 
-// Update ring size based on viewport
+// Update ring size based on viewport (screen resolution minus 20% margin)
 function updateRingSize() {
   const ring = document.getElementById('ring');
   if (!ring) return;
 
+  // Use actual screen resolution (from window dimensions)
   const minDim = Math.min(window.innerWidth, window.innerHeight);
-  const size = minDim * (settings.size / 100);
-  ring.style.width = size + 'px';
-  ring.style.height = size + 'px';
+  // Size is 80% of screen dimension (20% margin from edges)
+  const size = minDim * 0.80;
+  ring.style.width = Math.floor(size) + 'px';
+  ring.style.height = Math.floor(size) + 'px';
 }
 
 // Handle window resize
