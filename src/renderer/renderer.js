@@ -36,6 +36,17 @@ async function init() {
     updateRingSize();
   });
 
+  // Setup gear icon right-click to open settings
+  const gearIcon = document.getElementById('gear-icon');
+  if (gearIcon) {
+    gearIcon.addEventListener('contextmenu', (e) => {
+      e.preventDefault();
+      console.log('[lum-o-ring] Right-click on gear icon - opening settings');
+      electronAPI.send('open-settings');
+    });
+    console.log('[lum-o-ring] Gear icon right-click listener attached');
+  }
+
   // Apply settings and update ring
   updateRing();
   updateRingSize();

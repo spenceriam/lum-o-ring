@@ -1,7 +1,7 @@
 // Lum-o-ring Main Process
 // Two-window approach: Ring overlay + Settings dialog
 
-const { app, BrowserWindow, ipcMain, globalShortcut } = require("electron");
+const { app, BrowserWindow, ipcMain } = require("electron");
 const path = require("path");
 
 // Safe logging wrapper to handle EPIPE errors
@@ -155,13 +155,6 @@ app.whenReady().then(async () => {
   // ========== Create Settings Window (normal, hidden by default) ==========
   createSettingsWindow();
 
-  // ========== Register Keyboard Shortcuts ==========
-  // Ctrl+Shift+L to toggle settings window
-  globalShortcut.register('CommandOrControl+Shift+L', () => {
-    toggleSettingsWindow();
-  });
-  console.log("[lum-o-ring] Keyboard shortcut registered: Ctrl+Shift+L for settings");
-
   console.log("[lum-o-ring] Ring window loaded");
 });
 
@@ -200,19 +193,6 @@ function createSettingsWindow() {
   });
 }
 
-function toggleSettingsWindow() {
-  if (settingsWindow) {
-    if (settingsWindow.isVisible()) {
-      settingsWindow.hide();
-      console.log("[lum-o-ring] Settings window hidden");
-    } else {
-      settingsWindow.show();
-      settingsWindow.focus();
-      console.log("[lum-o-ring] Settings window shown");
-    }
-  }
-}
-
 // IPC handlers
 ipcMain.handle("loadSettings", async () => {
   return settingsStore;
@@ -235,6 +215,14 @@ ipcMain.on("close-settings", () => {
   }
 });
 
+ipcMain.on("open-settings", () => {
+  if (settingsWindow) {
+    settingsWindow.show();
+    settingsWindow.focus();
+    console.log("[lum-o-ring] Settings window opened via right-click");
+  }
+});
+
 ipcMain.on("update-ring", (event, settings) => {
   // Broadcast settings to ring window
   if (ringWindow) {
@@ -250,7 +238,6 @@ app.on("window-all-closed", () => {
 
 app.on("before-quit", () => {
   isQuitting = true;
-  globalShortcut.unregisterAll();
 });
 
 app.on("activate", () => {

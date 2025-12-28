@@ -314,6 +314,35 @@ input[type="range"]::-webkit-slider-thumb {
     display: none !important;
 }
 
+/* Gear icon in ring window */
+.gear-icon {
+    position: fixed;
+    top: 16px;
+    right: 16px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: rgba(26, 26, 26, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: white;
+    cursor: context-menu;
+    pointer-events: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    z-index: 1000;
+}
+
+.gear-icon:hover {
+    background: rgba(42, 42, 42, 0.9);
+    border-color: rgba(255, 255, 255, 0.4);
+}
+
+.gear-icon:active {
+    transform: scale(0.95);
+}
+
 /* ========== SETTINGS WINDOW STYLES ========== */
 
 .settings-window {
