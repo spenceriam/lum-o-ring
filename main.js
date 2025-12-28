@@ -139,9 +139,11 @@ app.whenReady().then(async () => {
 
   console.log("[lum-o-ring] Window created");
 
-  // Note: Click-through is handled via CSS pointer-events in the renderer
-  // The ring has pointer-events: none, while UI elements have pointer-events: auto
-  console.log("[lum-o-ring] Using CSS pointer-events for click-through");
+  // Enable click-through by default (before loadFile)
+  // This forwards mouse position to OS while ignoring clicks
+  // UI elements re-enable mouse events via dynamic set-ignore-mouse IPC
+  mainWindow.setIgnoreMouseEvents(true, { forward: true });
+  console.log("[lum-o-ring] Click-through enabled");
 
   // Handle window close - actually quit
   mainWindow.on("close", (event) => {
