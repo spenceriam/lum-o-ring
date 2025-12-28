@@ -30,7 +30,10 @@
     "electron",
     "linux"
   ],
-  "author": "Spencer Francisco",
+  "author": {
+    "name": "Spencer Francisco",
+    "email": "spencerfrancisco@gmail.com"
+  },
   "license": "MIT",
   "dependencies": {},
   "devDependencies": {
