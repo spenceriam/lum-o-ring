@@ -6,8 +6,8 @@ const { ipcRenderer } = require('electron');
 // Ring settings state
 let settings = {
   isOn: true,
-  size: 45,        // Size percentage of screen (inner + outer radius)
-  thickness: 20,   // Pixels (thickness of the ring band)
+  size: 70,        // Size percentage of screen (larger default for visibility)
+  thickness: 25,   // Pixels (thickness of the ring band)
   brightness: 100, // 0-100
   color: '#fff5cc' // Warm white
 };
@@ -195,21 +195,33 @@ function setupEventListeners() {
     });
   }
 
-  // Mouse tracking for click-through
-  // Enable mouse events when hovering over UI, disable (click-through) otherwise
-  document.addEventListener('mousemove', function(e) {
-    const target = e.target;
-    const isClickable = target.closest('#toggle-settings') ||
-                        target.closest('#control-panel') ||
-                        target.closest('#power-toggle') ||
-                        target.closest('input[type="range"]') ||
-                        target.closest('.color-preset') ||
-                        target.closest('#quit-btn') ||
-                        target.closest('.toggle-slider');
+  // Mouse tracking for click-through - use mouseenter/mouseleave on each element
+  // This is more responsive than mousemove for click detection
+  function setupMouseTracking(selector) {
+    const elements = document.querySelectorAll(selector);
+    elements.forEach(function(el) {
+      el.addEventListener('mouseenter', function() {
+        ipcRenderer.send('setIgnoreMouse', false); // Enable mouse for UI
+      });
+      el.addEventListener('mouseleave', function() {
+        ipcRenderer.send('setIgnoreMouse', true); // Disable (click-through)
+      });
+    });
+  }
 
-    // false = enable mouse events (for UI interaction)
-    // true = ignore mouse events (click-through to apps below)
-    ipcRenderer.send('setIgnoreMouse', !isClickable);
+  // Track all UI elements
+  setupMouseTracking('#toggle-settings');
+  setupMouseTracking('#control-panel');
+  setupMouseTracking('#power-toggle');
+  setupMouseTracking('#power-toggle + .toggle-slider');
+  setupMouseTracking('input[type="range"]');
+  setupMouseTracking('.color-preset');
+  setupMouseTracking('#quit-btn');
+  setupMouseTracking('.close-btn');
+
+  // Also track body for overall click-through (disable when leaving UI)
+  document.body.addEventListener('mouseleave', function() {
+    ipcRenderer.send('setIgnoreMouse', true);
   });
 
   console.log('[lum-o-ring] Event listeners setup complete');

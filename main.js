@@ -53,8 +53,8 @@ if (process.env.WAYLAND_DISPLAY && !process.env.GDK_BACKEND) {
 // Settings store
 let settingsStore = {
   isOn: true,
-  size: 45,        // Size percentage of screen
-  thickness: 20,   // Ring thickness in pixels
+  size: 70,        // Size percentage of screen (larger default)
+  thickness: 25,   // Ring thickness in pixels
   brightness: 100, // 0-100
   color: "#fff5cc" // Warm white
 };
