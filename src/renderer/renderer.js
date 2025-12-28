@@ -45,6 +45,12 @@ async function init() {
   // Setup click-through handler
   setupClickThrough();
 
+  // DIAGNOSTIC: Test mousemove events over different areas
+  // Remove this after confirming the fix works
+  document.addEventListener('mousemove', (e) => {
+    console.log(`[mousemove] x=${e.clientX}, y=${e.clientY}`);
+  });
+
   // Apply settings and update ring
   updateRing();
   updateRingSize();

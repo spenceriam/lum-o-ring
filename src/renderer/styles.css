@@ -78,6 +78,21 @@ body {
     z-index: 1000;
 }
 
+/* Invisible hit area around gear icon to trigger mousemove events
+   This fixes the issue where setIgnoreMouseEvents(true, { forward: true })
+   doesn't deliver mousemove events over transparent pixels */
+.settings-toggle::before {
+    content: '';
+    position: absolute;
+    top: -20px;
+    right: -20px;
+    bottom: -20px;
+    left: -20px;
+    background: rgba(0, 0, 0, 0.01); /* Nearly invisible but NOT transparent */
+    pointer-events: auto;
+    z-index: -1;
+}
+
 .settings-toggle:hover {
     background: rgba(42, 42, 42, 0.9);
     border-color: rgba(255, 255, 255, 0.4);
