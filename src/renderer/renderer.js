@@ -1,12 +1,12 @@
 // Lum-o-ring Renderer
 // Ring light overlay with transparent background
 
-const { ipcRenderer } = require('electron');
+const electronAPI = window.electronAPI;
 
 // Ring settings state
 let settings = {
   isOn: true,
-  size: 70,        // Size percentage of screen
+  size: 80,        // Size percentage of screen
   thickness: 25,   // Pixels (thickness of the ring band)
   brightness: 100, // 0-100
   blur: 40,        // Pixels (glow/blur amount)
@@ -22,7 +22,7 @@ async function init() {
 
   // Load saved settings
   try {
-    const savedSettings = await ipcRenderer.invoke('loadSettings');
+    const savedSettings = await electronAPI.invoke('loadSettings');
     if (savedSettings) {
       settings = { ...settings, ...savedSettings };
       console.log('[lum-o-ring] Settings loaded:', settings);
@@ -209,7 +209,7 @@ function setupEventListeners() {
     quitBtn.addEventListener('click', function(e) {
       e.stopPropagation();
       console.log('[lum-o-ring] Quit clicked');
-      ipcRenderer.send('quitApp');
+      electronAPI.send('quitApp');
     });
   }
 
@@ -250,11 +250,9 @@ function updateRingSize() {
   const ring = document.getElementById('ring');
   if (!ring) return;
 
-  // Use settings.size percentage of the smaller screen dimension
-  const minDim = Math.min(window.innerWidth, window.innerHeight);
-  const size = minDim * (settings.size / 100);
-  ring.style.width = Math.floor(size) + 'px';
-  ring.style.height = Math.floor(size) + 'px';
+  // Use settings.size percentage - set as CSS percentage
+  ring.style.width = settings.size + '%';
+  ring.style.height = settings.size + '%';
 }
 
 // Handle window resize
@@ -272,7 +270,7 @@ function saveSettingsDebounced() {
 // Save settings
 async function saveSettings() {
   try {
-    await ipcRenderer.invoke('saveSettings', { settings: settings });
+    await electronAPI.invoke('saveSettings', { settings: settings });
     console.log('[lum-o-ring] Settings saved:', settings);
   } catch (error) {
     console.error('[lum-o-ring] Failed to save settings:', error);

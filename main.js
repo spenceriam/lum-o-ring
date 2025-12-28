@@ -53,7 +53,7 @@ if (process.env.WAYLAND_DISPLAY && !process.env.GDK_BACKEND) {
 // Settings store
 let settingsStore = {
   isOn: true,
-  size: 70,        // Size percentage of screen
+  size: 80,        // Size percentage of screen
   thickness: 25,   // Ring thickness in pixels
   brightness: 100, // 0-100
   blur: 40,        // Glow/blur amount in pixels
