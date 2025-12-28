@@ -195,32 +195,42 @@ function setupEventListeners() {
     });
   }
 
-  // Mouse tracking for click-through - use mouseenter/mouseleave on each element
-  // This is more responsive than mousemove for click detection
-  function setupMouseTracking(selector) {
-    const elements = document.querySelectorAll(selector);
-    elements.forEach(function(el) {
-      el.addEventListener('mouseenter', function() {
-        ipcRenderer.send('setIgnoreMouse', false); // Enable mouse for UI
-      });
-      el.addEventListener('mouseleave', function() {
-        ipcRenderer.send('setIgnoreMouse', true); // Disable (click-through)
-      });
-    });
+  // Mouse tracking for click-through
+  // Keep top-right corner (gear icon + control panel) always responsive
+  // Only use click-through for the rest of the window
+  const GEAR_SIZE = 80; // 80x80 pixel area for gear icon
+  const PANEL_WIDTH = 280; // Width of control panel
+  const PANEL_HEIGHT = 400; // Height of control panel
+
+  function isInUIArea(x, y) {
+    // Check if in gear icon area (top-right corner)
+    const inGearArea = x >= window.innerWidth - GEAR_SIZE && y <= GEAR_SIZE;
+
+    // Check if control panel is open and mouse is over it
+    let inPanelArea = false;
+    if (showControlPanel) {
+      inPanelArea = x >= window.innerWidth - PANEL_WIDTH && y <= PANEL_HEIGHT;
+    }
+
+    return inGearArea || inPanelArea;
   }
 
-  // Track all UI elements
-  setupMouseTracking('#toggle-settings');
-  setupMouseTracking('#control-panel');
-  setupMouseTracking('#power-toggle');
-  setupMouseTracking('#power-toggle + .toggle-slider');
-  setupMouseTracking('input[type="range"]');
-  setupMouseTracking('.color-preset');
-  setupMouseTracking('#quit-btn');
-  setupMouseTracking('.close-btn');
+  // Enable mouse events if in UI area, otherwise use click-through
+  function updateClickThrough(x, y) {
+    const ignore = !isInUIArea(x, y);
+    ipcRenderer.send('setIgnoreMouse', ignore);
+  }
 
-  // Also track body for overall click-through (disable when leaving UI)
-  document.body.addEventListener('mouseleave', function() {
+  // Track mouse position
+  document.addEventListener('mousemove', function(e) {
+    updateClickThrough(e.clientX, e.clientY);
+  });
+
+  // Initial check
+  updateClickThrough(window.innerWidth - 40, 40);
+
+  // Handle mouse leaving window
+  document.addEventListener('mouseleave', function() {
     ipcRenderer.send('setIgnoreMouse', true);
   });
 
