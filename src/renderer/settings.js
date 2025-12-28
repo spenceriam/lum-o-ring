@@ -169,7 +169,17 @@
 
   // Update ring via IPC
   function updateRing() {
-    electronAPI.send('update-ring', settings);
+    // Send only the settings properties we need, not the entire object
+    // which may include Electron IPC MessagePort properties
+    const cleanSettings = {
+      isOn: settings.isOn,
+      size: settings.size,
+      thickness: settings.thickness,
+      brightness: settings.brightness,
+      blur: settings.blur,
+      color: settings.color
+    };
+    electronAPI.send('update-ring', cleanSettings);
   }
 
   // Debounced save

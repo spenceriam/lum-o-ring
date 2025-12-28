@@ -1,7 +1,7 @@
 // Lum-o-ring Main Process
 // Two-window approach: Ring overlay + Settings dialog
 
-const { app, BrowserWindow, ipcMain } = require("electron");
+const { app, BrowserWindow, ipcMain, Menu } = require("electron");
 const path = require("path");
 
 // Safe logging wrapper to handle EPIPE errors
@@ -104,6 +104,7 @@ if (!gotTheLock) {
 
 let ringWindow = null;
 let settingsWindow = null;
+let gearWindow = null;
 let isQuitting = false;
 
 app.whenReady().then(async () => {
@@ -149,19 +150,32 @@ app.whenReady().then(async () => {
     }
   });
 
-  // When ring window is closed, quit the app
+  // When ring window is closed, destroy all windows and quit
   ringWindow.on("closed", () => {
     ringWindow = null;
-    if (!isQuitting) {
-      isQuitting = true;
-      app.quit();
+    isQuitting = true;
+    console.log("[lum-o-ring] Ring window closed - destroying all windows");
+
+    // Destroy settings window if it exists
+    if (settingsWindow && !settingsWindow.isDestroyed()) {
+      settingsWindow.destroy();
     }
+    // Destroy gear window if it exists
+    if (gearWindow && !gearWindow.isDestroyed()) {
+      gearWindow.destroy();
+    }
+
+    // Force exit on Linux
+    app.exit(0);
   });
 
   ringWindow.loadFile("src/renderer/index.html");
 
   // ========== Create Settings Window (normal, hidden by default) ==========
   createSettingsWindow();
+
+  // ========== Create Gear Icon Window (separate, receives mouse events) ==========
+  createGearWindow();
 
   console.log("[lum-o-ring] Ring window loaded");
 });
@@ -194,10 +208,51 @@ function createSettingsWindow() {
   settingsWindow.loadFile("src/renderer/settings.html");
 
   settingsWindow.on("close", (event) => {
-    // Just hide instead of closing
-    event.preventDefault();
-    settingsWindow.hide();
-    console.log("[lum-o-ring] Settings window hidden");
+    // Only hide if app is not quitting - allow close during quit
+    if (!isQuitting) {
+      event.preventDefault();
+      settingsWindow.hide();
+      console.log("[lum-o-ring] Settings window hidden");
+    }
+    // If isQuitting, allow the close to proceed
+  });
+}
+
+function createGearWindow() {
+  const { screen } = require("electron");
+  const primaryDisplay = screen.getPrimaryDisplay();
+  const { width } = primaryDisplay.workAreaSize;
+
+  gearWindow = new BrowserWindow({
+    width: 50,
+    height: 50,
+    x: width - 56,  // Top-right corner (width - 50 - margins)
+    y: 10,
+    frame: false,
+    transparent: true,
+    resizable: false,
+    skipTaskbar: true,
+    alwaysOnTop: true,
+    show: true,
+    webPreferences: {
+      nodeIntegration: false,
+      contextIsolation: true,
+      preload: path.join(__dirname, "src/renderer/preload.js"),
+    },
+  });
+
+  // NOTE: No setIgnoreMouseEvents - this window receives all events normally!
+  gearWindow.loadFile("src/renderer/gear.html");
+  console.log("[lum-o-ring] Gear icon window created");
+
+  gearWindow.on("close", () => {
+    if (!isQuitting) {
+      gearWindow = null;
+    }
+  });
+
+  gearWindow.on("closed", () => {
+    gearWindow = null;
   });
 }
 
@@ -213,7 +268,20 @@ ipcMain.handle("saveSettings", async (event, data) => {
 ipcMain.on("quitApp", () => {
   console.log("[lum-o-ring] Quit app requested");
   isQuitting = true;
-  app.quit();
+
+  // Destroy all windows forcefully
+  if (ringWindow && !ringWindow.isDestroyed()) {
+    ringWindow.destroy();
+  }
+  if (settingsWindow && !settingsWindow.isDestroyed()) {
+    settingsWindow.destroy();
+  }
+  if (gearWindow && !gearWindow.isDestroyed()) {
+    gearWindow.destroy();
+  }
+
+  // Force exit on Linux
+  app.exit(0);
 });
 
 ipcMain.on("close-settings", () => {
@@ -231,27 +299,69 @@ ipcMain.on("open-settings", () => {
   }
 });
 
-// Toggle mouse events for gear icon (enables right-click)
-ipcMain.on("enable-mouse-events", () => {
-  if (ringWindow && !ringWindow.isDestroyed()) {
-    ringWindow.setIgnoreMouseEvents(false);
-    console.log("[lum-o-ring] Mouse events enabled for gear icon");
-  }
-});
+ipcMain.on("update-ring", (event, data) => {
+  // Extract only settings properties - data may contain IPC MessagePort properties
+  const settings = {
+    isOn: data.isOn,
+    size: data.size,
+    thickness: data.thickness,
+    brightness: data.brightness,
+    blur: data.blur,
+    color: data.color
+  };
 
-// Re-enable click-through when leaving gear icon
-ipcMain.on("disable-mouse-events", () => {
-  if (ringWindow && !ringWindow.isDestroyed()) {
-    ringWindow.setIgnoreMouseEvents(true, { forward: true });
-    console.log("[lum-o-ring] Mouse events disabled (click-through restored)");
-  }
-});
-
-ipcMain.on("update-ring", (event, settings) => {
   // Broadcast settings to ring window
   if (ringWindow) {
     ringWindow.webContents.send("ring-settings-updated", settings);
   }
+});
+
+// Show context menu for gear icon
+ipcMain.on("show-context-menu", () => {
+  const contextMenu = Menu.buildFromTemplate([
+    {
+      label: "Settings",
+      click: () => {
+        if (settingsWindow) {
+          settingsWindow.show();
+          settingsWindow.focus();
+          console.log("[lum-o-ring] Settings opened from context menu");
+        }
+      }
+    },
+    { type: "separator" },
+    {
+      label: "Quit",
+      click: () => {
+        console.log("[lum-o-ring] Quit requested from context menu");
+        isQuitting = true;
+
+        // Destroy all windows forcefully
+        if (ringWindow && !ringWindow.isDestroyed()) {
+          ringWindow.destroy();
+        }
+        if (settingsWindow && !settingsWindow.isDestroyed()) {
+          settingsWindow.destroy();
+        }
+        if (gearWindow && !gearWindow.isDestroyed()) {
+          gearWindow.destroy();
+        }
+
+        // Force exit on Linux
+        app.exit(0);
+      }
+    }
+  ]);
+
+  // Position menu at top-right corner of screen (where gear icon is)
+  const { screen } = require("electron");
+  const primaryDisplay = screen.getPrimaryDisplay();
+  const { width } = primaryDisplay.workAreaSize;
+
+  contextMenu.popup({
+    x: width - 100,
+    y: 50
+  });
 });
 
 // App lifecycle - don't prevent quit on Linux

@@ -34,34 +34,12 @@
     // Listen for settings updates from settings window
     electronAPI.on('ring-settings-updated', (newSettings) => {
       settings = { ...settings, ...newSettings };
-      console.log('[lum-o-ring] Settings updated:', settings);
+      console.log('[lum-o-ring] Settings updated:', JSON.stringify(settings));
+      console.log('[lum-o-ring] Applying: brightness=' + settings.brightness + ', thickness=' + settings.thickness + ', blur=' + settings.blur + ', color=' + settings.color + ', size=' + settings.size + ', isOn=' + settings.isOn);
       updateRing();
       updateRingSize();
+      console.log('[lum-o-ring] Ring updated');
     });
-
-    // Setup gear icon right-click to open settings
-    const gearIcon = document.getElementById('gear-icon');
-    if (gearIcon) {
-      // Enable mouse events when hovering over gear icon
-      gearIcon.addEventListener('mouseenter', () => {
-        electronAPI.send('enable-mouse-events');
-      });
-
-      // Disable mouse events when leaving gear icon (restore click-through)
-      gearIcon.addEventListener('mouseleave', () => {
-        electronAPI.send('disable-mouse-events');
-      });
-
-      // Right-click opens settings
-      gearIcon.addEventListener('contextmenu', (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        console.log('[lum-o-ring] Right-click on gear icon - opening settings');
-        electronAPI.send('open-settings');
-      });
-
-      console.log('[lum-o-ring] Gear icon listeners attached');
-    }
 
     // Apply settings and update ring
     updateRing();
@@ -81,6 +59,8 @@
 
     if (!settings.isOn) {
       ring.style.opacity = '0';
+      // Force repaint
+      void ring.offsetHeight;
       return;
     }
 
@@ -90,7 +70,10 @@
     ring.style.opacity = opacity;
 
     // Glow effect using blur setting
-    ring.style.filter = 'drop-shadow(0 0 ' + settings.blur + 'px ' + settings.color + ')';
+    ring.style.filter = settings.blur > 0 ? 'drop-shadow(0 0 ' + settings.blur + 'px ' + settings.color + ')' : 'none';
+
+    // Force repaint to ensure visual update
+    void ring.offsetHeight;
   }
 
   // Update ring size based on percentage of screen

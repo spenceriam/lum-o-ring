@@ -9,6 +9,9 @@ contextBridge.exposeInMainWorld("electronAPI", {
     ipcRenderer.send(channel, ...args);
   },
   on: (channel, callback) => {
-    ipcRenderer.on(channel, callback);
+    ipcRenderer.on(channel, (event, ...args) => callback(...args));
+  },
+  showContextMenu: (options) => {
+    ipcRenderer.send("show-context-menu", options);
   }
 });
