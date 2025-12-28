@@ -171,6 +171,19 @@ ipcMain.on("quitApp", () => {
   app.quit();
 });
 
+// Dynamic click-through handler
+ipcMain.on("set-ignore-mouse", (event, ignore) => {
+  if (mainWindow) {
+    if (ignore) {
+      mainWindow.setIgnoreMouseEvents(true, { forward: true });
+      console.log("[lum-o-ring] Mouse events ignored (click-through enabled)");
+    } else {
+      mainWindow.setIgnoreMouseEvents(false);
+      console.log("[lum-o-ring] Mouse events enabled (UI accessible)");
+    }
+  }
+});
+
 // App lifecycle - don't prevent quit on Linux
 app.on("window-all-closed", () => {
   // On Linux, quit when all windows are closed

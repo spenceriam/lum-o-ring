@@ -19,6 +19,11 @@ let showControlPanel = false;
 // Initialize the app
 async function init() {
   console.log('[lum-o-ring] Initializing renderer...');
+  console.log('[lum-o-ring] electronAPI available:', !!window.electronAPI);
+
+  if (!window.electronAPI) {
+    console.error('[lum-o-ring] FATAL: electronAPI not exposed via preload');
+  }
 
   // Load saved settings
   try {
@@ -36,6 +41,9 @@ async function init() {
 
   // Setup event listeners
   setupEventListeners();
+
+  // Setup click-through handler
+  setupClickThrough();
 
   // Apply settings and update ring
   updateRing();
@@ -214,6 +222,31 @@ function setupEventListeners() {
   }
 
   console.log('[lum-o-ring] Event listeners setup complete');
+}
+
+// Setup dynamic click-through based on mouse position
+function setupClickThrough() {
+  let isIgnoring = true;
+
+  document.addEventListener('mousemove', (e) => {
+    const element = document.elementFromPoint(e.clientX, e.clientY);
+    const isOverUI = element && (
+      element.closest('#control-panel') ||
+      element.closest('#toggle-settings')
+    );
+
+    const shouldIgnore = !isOverUI;
+
+    if (shouldIgnore !== isIgnoring) {
+      isIgnoring = shouldIgnore;
+      window.electronAPI.send('set-ignore-mouse', shouldIgnore);
+      console.log('[lum-o-ring] Click-through:', isIgnoring ? 'enabled' : 'disabled');
+    }
+  });
+
+  // Start with click-through enabled
+  window.electronAPI.send('set-ignore-mouse', true);
+  console.log('[lum-o-ring] Click-through handler initialized');
 }
 
 // Update ring visual
