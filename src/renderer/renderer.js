@@ -6,9 +6,10 @@ const { ipcRenderer } = require('electron');
 // Ring settings state
 let settings = {
   isOn: true,
-  size: 70,        // Size percentage of screen (larger default for visibility)
+  size: 70,        // Size percentage of screen
   thickness: 25,   // Pixels (thickness of the ring band)
   brightness: 100, // 0-100
+  blur: 40,        // Pixels (glow/blur amount)
   color: '#fff5cc' // Warm white
 };
 
@@ -52,6 +53,8 @@ function syncUIWithSettings() {
   const thicknessValue = document.getElementById('thickness-value');
   const brightnessSlider = document.getElementById('brightness-slider');
   const brightnessValue = document.getElementById('brightness-value');
+  const blurSlider = document.getElementById('blur-slider');
+  const blurValue = document.getElementById('blur-value');
   const colorPicker = document.getElementById('color-picker');
 
   if (powerToggle) powerToggle.checked = settings.isOn;
@@ -61,6 +64,8 @@ function syncUIWithSettings() {
   if (thicknessValue) thicknessValue.textContent = settings.thickness + 'px';
   if (brightnessSlider) brightnessSlider.value = settings.brightness;
   if (brightnessValue) brightnessValue.textContent = settings.brightness + '%';
+  if (blurSlider) blurSlider.value = settings.blur;
+  if (blurValue) blurValue.textContent = settings.blur + 'px';
   if (colorPicker) colorPicker.value = settings.color;
 }
 
@@ -162,6 +167,19 @@ function setupEventListeners() {
     });
   }
 
+  // Blur slider
+  const blurSlider = document.getElementById('blur-slider');
+  if (blurSlider) {
+    blurSlider.addEventListener('input', function(e) {
+      settings.blur = parseInt(e.target.value);
+      const blurValue = document.getElementById('blur-value');
+      if (blurValue) blurValue.textContent = settings.blur + 'px';
+      console.log('[lum-o-ring] Blur:', settings.blur);
+      updateRing();
+      saveSettingsDebounced();
+    });
+  }
+
   // Color picker
   const colorPicker = document.getElementById('color-picker');
   if (colorPicker) {
@@ -195,45 +213,6 @@ function setupEventListeners() {
     });
   }
 
-  // Mouse tracking for click-through
-  // Keep top-right corner (gear icon + control panel) always responsive
-  // Only use click-through for the rest of the window
-  const GEAR_SIZE = 80; // 80x80 pixel area for gear icon
-  const PANEL_WIDTH = 280; // Width of control panel
-  const PANEL_HEIGHT = 400; // Height of control panel
-
-  function isInUIArea(x, y) {
-    // Check if in gear icon area (top-right corner)
-    const inGearArea = x >= window.innerWidth - GEAR_SIZE && y <= GEAR_SIZE;
-
-    // Check if control panel is open and mouse is over it
-    let inPanelArea = false;
-    if (showControlPanel) {
-      inPanelArea = x >= window.innerWidth - PANEL_WIDTH && y <= PANEL_HEIGHT;
-    }
-
-    return inGearArea || inPanelArea;
-  }
-
-  // Enable mouse events if in UI area, otherwise use click-through
-  function updateClickThrough(x, y) {
-    const ignore = !isInUIArea(x, y);
-    ipcRenderer.send('setIgnoreMouse', ignore);
-  }
-
-  // Track mouse position
-  document.addEventListener('mousemove', function(e) {
-    updateClickThrough(e.clientX, e.clientY);
-  });
-
-  // Initial check
-  updateClickThrough(window.innerWidth - 40, 40);
-
-  // Handle mouse leaving window
-  document.addEventListener('mouseleave', function() {
-    ipcRenderer.send('setIgnoreMouse', true);
-  });
-
   console.log('[lum-o-ring] Event listeners setup complete');
 }
 
@@ -262,20 +241,18 @@ function updateRing() {
   ring.style.border = settings.thickness + 'px solid ' + settings.color;
   ring.style.opacity = opacity;
 
-  // Glow effect using filter
-  const glowAmount = settings.thickness * 2;
-  ring.style.filter = 'drop-shadow(0 0 ' + glowAmount + 'px ' + settings.color + ')';
+  // Glow effect using blur setting
+  ring.style.filter = 'drop-shadow(0 0 ' + settings.blur + 'px ' + settings.color + ')';
 }
 
-// Update ring size based on viewport (screen resolution minus 20% margin)
+// Update ring size based on percentage of screen
 function updateRingSize() {
   const ring = document.getElementById('ring');
   if (!ring) return;
 
-  // Use actual screen resolution (from window dimensions)
+  // Use settings.size percentage of the smaller screen dimension
   const minDim = Math.min(window.innerWidth, window.innerHeight);
-  // Size is 80% of screen dimension (20% margin from edges)
-  const size = minDim * 0.80;
+  const size = minDim * (settings.size / 100);
   ring.style.width = Math.floor(size) + 'px';
   ring.style.height = Math.floor(size) + 'px';
 }

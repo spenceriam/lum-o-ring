@@ -53,9 +53,10 @@ if (process.env.WAYLAND_DISPLAY && !process.env.GDK_BACKEND) {
 // Settings store
 let settingsStore = {
   isOn: true,
-  size: 70,        // Size percentage of screen (larger default)
+  size: 70,        // Size percentage of screen
   thickness: 25,   // Ring thickness in pixels
   brightness: 100, // 0-100
+  blur: 40,        // Glow/blur amount in pixels
   color: "#fff5cc" // Warm white
 };
 
@@ -138,9 +139,9 @@ app.whenReady().then(async () => {
 
   console.log("[lum-o-ring] Window created");
 
-  // Make window click-through by default (passes all clicks to apps below)
-  mainWindow.setIgnoreMouseEvents(true, { forward: true });
-  console.log("[lum-o-ring] Click-through enabled");
+  // Note: Click-through is handled via CSS pointer-events in the renderer
+  // The ring has pointer-events: none, while UI elements have pointer-events: auto
+  console.log("[lum-o-ring] Using CSS pointer-events for click-through");
 
   // Handle window close - actually quit
   mainWindow.on("close", (event) => {
@@ -168,14 +169,6 @@ ipcMain.on("quitApp", () => {
   console.log("[lum-o-ring] Quit app requested");
   isQuitting = true;
   app.quit();
-});
-
-// Toggle click-through based on mouse position
-ipcMain.on("setIgnoreMouse", (event, ignore) => {
-  if (mainWindow) {
-    mainWindow.setIgnoreMouseEvents(ignore, { forward: ignore });
-    console.log("[lum-o-ring] Mouse events", ignore ? "ignored (click-through)" : "enabled (UI accessible)");
-  }
 });
 
 // App lifecycle - don't prevent quit on Linux
