@@ -34,7 +34,7 @@
     "name": "Spencer Francisco",
     "email": "spencerfrancisco@gmail.com"
   },
-  "license": "MIT",
+  "license": "Apache-2.0",
   "dependencies": {},
   "devDependencies": {
     "electron": "^28.0.0",

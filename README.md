@@ -75,10 +75,4 @@ npm run make
 
 ## License
 
-Distributed under the MIT License. See `LICENSE` for more information.
-
-### Verified Sources
-- [softwarelogic.co](https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQFRVUtW1TCBx-YVrg89eQFSLJ20hGmQ7x1NWurdvqyANcW-44vXA4sA_AGFmO2QxKMLshe_8TlzH3Rvf3m-d5_c1TfCwYm8qUzRrFzIoUvdF6NyuGOTy8wQdOGayY1VwnRVBkNTdkW5_3eFSr3jGLrDxqYOSzZeQSwPN446HcnMDVxoP8UwnyN_JCbcXe_3prX2-1U=)
-- [openreplay.com](https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQE3JrVNyt-PATjNYfezZMFTU0B08FigsBEnMZUSpwowRzdhwbLDP5A95rKYkn5D4mc-iDgmreTqvUgKah38tizsZLnSTzITjcKAoEzLiOCvq6vbIcEh_BVmAHsSoR8zjccHj5raQCWpK1o1VaWTHbVKIFX7uvlm9Q8DYacNJDiKICaUnnV8)
-- [github.com](https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQGGf-ksGFQqhJTYk3Q8D83z2wXQPtoTGWStu87jfBIkr0hFutK9HdkbBuXXIOd2rhVxVTcJ_cj23dXAKlaqRx2IzEAn5ZQ-Xq9eW16fuEVVOmGetMcERVCHCbGFPSGm0LTlScGCnn3_uFiIFWk=)
-- [reddit.com](https://vertexaisearch.cloud.google.com/grounding-api-redirect/AUZIYQHcYF7Yey4XRPkeywM29dNcWF_6pBQk9dbnzgD-0WhCWG90RiEOCiUGEaKHj36dQnJoa3gMxRwdErUt86MwvcHBx_-tLgokLDqRJ7Sx4NjfUT_wRDMQccouxMbYHIwd421AldWB5o6VQIUtDB_SG7T5ynNXcqNCkJGI4PnTDDBR1A==)
+Distributed under the Apache License 2.0. See `LICENSE` for more information.
