@@ -54,10 +54,11 @@ if (process.env.WAYLAND_DISPLAY && !process.env.GDK_BACKEND) {
 let settingsStore = {
   isOn: true,
   size: 80,        // Size percentage of screen
-  thickness: 25,   // Ring thickness in pixels
+  thickness: 40,   // Ring thickness in pixels
   brightness: 100, // 0-100
   blur: 40,        // Glow/blur amount in pixels
-  color: "#fff5cc" // Warm white
+  color: "#fff5cc", // Warm white
+  customColor: "#fff5cc" // User's custom color
 };
 
 const SETTINGS_FILE = path.join(app.getPath("userData"), "lum-o-ring.json");
@@ -187,7 +188,7 @@ function createSettingsWindow() {
 
   settingsWindow = new BrowserWindow({
     width: 320,
-    height: 450,
+    height: 620,
     x: x + 50,
     y: y + 50,
     frame: false,
@@ -316,9 +317,38 @@ ipcMain.on("update-ring", (event, data) => {
   }
 });
 
+ipcMain.on("open-external", (event, url) => {
+  console.log("[lum-o-ring] Opening external URL:", url);
+  require("electron").shell.openExternal(url);
+});
+
 // Show context menu for gear icon
 ipcMain.on("show-context-menu", () => {
+  // Build menu dynamically based on current ring state
+  const ringLabel = settingsStore.isOn ? "Turn Ring Off" : "Turn Ring On";
+
   const contextMenu = Menu.buildFromTemplate([
+    {
+      label: ringLabel,
+      click: () => {
+        console.log("[lum-o-ring] Context menu: " + ringLabel);
+
+        // Toggle the ring state
+        settingsStore.isOn = !settingsStore.isOn;
+
+        // Send to ring window to update visual
+        if (ringWindow && !ringWindow.isDestroyed()) {
+          ringWindow.webContents.send("ring-settings-updated", settingsStore);
+        }
+
+        // Send to settings window to sync toggle UI
+        if (settingsWindow && !settingsWindow.isDestroyed()) {
+          settingsWindow.webContents.send("sync-ring-toggle", settingsStore.isOn);
+        }
+
+        console.log("[lum-o-ring] Ring toggled " + (settingsStore.isOn ? "ON" : "OFF"));
+      }
+    },
     {
       label: "Settings",
       click: () => {
