@@ -7,8 +7,20 @@
     "start": "GDK_BACKEND=x11 electron . 2>&1 | grep -v 'GetVSyncParametersIfAvailable'",
     "dev": "GDK_BACKEND=x11 electron . --enable-logging 2>&1 | grep -v 'GetVSyncParametersIfAvailable'",
     "dev:verbose": "GDK_BACKEND=x11 electron . --enable-logging",
-    "build": "electron-builder --linux",
-    "build:appimage": "electron-builder --linux AppImage"
+
+    "clean": "rm -rf dist/",
+
+    "build:linux": "electron-builder --linux",
+    "build:linux:deb": "electron-builder --linux deb",
+    "build:linux:portable": "electron-builder --linux AppImage",
+
+    "build:win": "electron-builder --win",
+    "build:win:installer": "electron-builder --win nsis",
+    "build:win:portable": "electron-builder --win portable",
+
+    "build:mac": "electron-builder --mac",
+    "build:mac:dmg": "electron-builder --mac dmg",
+    "build:mac:portable": "electron-builder --mac zip"
   },
   "keywords": [
     "ring-light",
@@ -18,7 +30,7 @@
     "electron",
     "linux"
   ],
-  "author": "lum-o-ring",
+  "author": "Spencer Francisco",
   "license": "MIT",
   "dependencies": {},
   "devDependencies": {
@@ -28,17 +40,74 @@
   "build": {
     "appId": "com.lum-o-ring.app",
     "productName": "Lum-o-ring",
-    "linux": {
-      "target": ["AppImage"],
-      "category": "Utility",
-      "executableName": "lum-o-ring"
-    },
+    "copyright": "Copyright © 2025 Spencer Francisco",
+    "artifactName": "${productName}-${version}-${os}-${arch}.${ext}",
+
     "files": [
       "main.js",
       "src/**/*"
     ],
+
     "directories": {
-      "output": "dist"
+      "output": "dist",
+      "buildResources": "build"
+    },
+
+    "linux": {
+      "target": [
+        { "target": "deb", "arch": ["x64"] },
+        { "target": "AppImage", "arch": ["x64"] }
+      ],
+      "category": "Utility",
+      "icon": "build/icons",
+      "executableName": "lum-o-ring",
+      "synopsis": "Screen-based ring light for video calls",
+      "description": "A customizable ring light overlay that illuminates your face during video calls."
+    },
+
+    "deb": {
+      "depends": ["libnotify4", "libxtst6", "libnss3"],
+      "packageCategory": "utils",
+      "priority": "optional"
+    },
+
+    "win": {
+      "target": [
+        { "target": "nsis", "arch": ["x64"] },
+        { "target": "portable", "arch": ["x64"] }
+      ],
+      "icon": "build/icon.ico"
+    },
+
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "installerIcon": "build/icon.ico",
+      "uninstallerIcon": "build/icon.ico",
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
+    },
+
+    "portable": {
+      "artifactName": "${productName}-${version}-portable.exe"
+    },
+
+    "mac": {
+      "target": [
+        { "target": "dmg", "arch": ["x64", "arm64"] },
+        { "target": "zip", "arch": ["x64", "arm64"] }
+      ],
+      "category": "public.app-category.utilities",
+      "icon": "build/icon.icns",
+      "hardenedRuntime": false,
+      "gatekeeperAssess": false
+    },
+
+    "dmg": {
+      "contents": [
+        { "x": 130, "y": 220 },
+        { "x": 410, "y": 220, "type": "link", "path": "/Applications" }
+      ]
     }
   }
 }
